@@ -1,56 +1,26 @@
+import asyncio
 import os
-import time
-import requests
-import json
+from rubka import Client
 
 TOKEN = os.environ.get("RUBIKA_BOT_TOKEN")
 
-if not TOKEN:
-    print("❌ توکن پیدا نشد!")
-    exit(1)
+async def main():
+    if not TOKEN:
+        print("❌ توکن پیدا نشد!")
+        return
 
-print("✅ توکن پیدا شد. در حال اتصال به روبیکا...")
-
-# آدرس API روبیکا
-BASE_URL = f"https://api.robika.ir/bot{TOKEN}/"
-
-def get_updates(offset=None):
-    url = BASE_URL + "getUpdates"
-    params = {"timeout": 30}
-    if offset:
-        params["offset"] = offset
-    try:
-        res = requests.get(url, params=params, timeout=35)
-        if res.status_code == 200:
-            return res.json().get("result", [])
-    except Exception as e:
-        print(f"خطا در اتصال: {e}")
-    return []
-
-def send_message(chat_id, text):
-    url = BASE_URL + "sendMessage"
-    data = {"chat_id": chat_id, "text": text}
-    try:
-        requests.post(url, data=data, timeout=10)
-    except Exception as e:
-        print(f"خطا در ارسال: {e}")
-
-print("🚀 ربات روشن شد و منتظر پیامه...")
-
-last_update_id = 0
-
-while True:
-    updates = get_updates(offset=last_update_id + 1)
-    for update in updates:
-        last_update_id = update.get("update_id", last_update_id)
-        message = update.get("message")
-        
-        if message and "text" in message:
-            chat_id = message["chat"]["id"]
-            text = message["text"]
-            
-            if text == "سلام":
-                send_message(chat_id, "سلام داداش! ربات بدون کتابخانه وصله ⚡")
-                print(f"پیام 'سلام' از {chat_id} دریافت و پاسخ داده شد.")
+    print("✅ توکن پیدا شد. در حال اتصال...")
     
-    time.sleep(1) # یه ثانیه صبر میکنه تا سرور روبیکا اذیت نشه
+    bot = Client(TOKEN)
+
+    @bot.on_message()
+    async def echo(msg):
+        if msg.text == "سلام":
+            await msg.reply("سلام داداش! ربات وصله ⚡")
+            print("پیام سلام دریافت و پاسخ داده شد.")
+
+    print("🚀 ربات روشن شد...")
+    await bot.run()
+
+if __name__ == "__main__":
+    asyncio.run(main())
