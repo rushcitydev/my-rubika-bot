@@ -1,0 +1,28 @@
+name: Run Rubika Bot
+
+on:
+  schedule:
+    - cron: '0 */5 * * *'   # هر ۵ ساعت یکبار اجرا میشه
+  workflow_dispatch:          # دکمه اجرای دستی
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350      # کمی کمتر از ۶ ساعت
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run bot
+      env:
+        RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+      run: python main.py
